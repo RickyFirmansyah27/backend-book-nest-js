@@ -53,15 +53,15 @@ export class UserController {
   @Delete(':id')
   async deleteUserById(@Query('id') id: string, @Res() reply) {
     try {
-      const book = await this.UserModel.findOne({
+      const user = await this.UserModel.findOne({
         where: { id },
       });
 
-      if (!book) {
+      if (!user) {
         return reply.status(404).json(ResNotFound([{ key: 'id', value: id }]));
       }
 
-      await book.destroy();
+      await user.destroy();
 
       reply.json(DeleteResponse());
     } catch (err) {
