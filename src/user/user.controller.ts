@@ -8,18 +8,22 @@ import {
   Body,
   Post,
   Delete,
+  Put,
 } from '@nestjs/common'; // Pastikan Anda mengimpor Res dengan benar
 import {
   ResOK,
   ResNotFound,
   ReplyError,
   DeleteResponse,
+  NotFoundResponse,
+  ResDto,
 } from '../../helper/res.helper';
-import { from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Subject, from } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './user.entity';
 import { ToCreateUserDto } from './create-user.dto';
+import { UpdateEmailPasswordDto } from './update-auth-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -27,10 +31,10 @@ export class UserController {
   constructor(
     @InjectModel(User)
     private UserModel: typeof User,
-  ) {}
+  ) { }
 
   @Get('uuid')
-  findOne(@Query('uuid') uuid: string, @Res() reply) { 
+  findOne(@Query('uuid') uuid: string, @Res() reply) {
     console.log(uuid);
     from(
       this.UserModel.findOne({
@@ -100,4 +104,55 @@ export class UserController {
         error: (err) => ReplyError(err, this.logger, reply),
       });
   }
+
+  @Put(':uuid')
+  update(
+    @Query('uuid') uuid: string,
+    @Body() updateDto: UpdateEmailPasswordDto,
+    @Res() reply,
+  ) {
+    const result = new Subject<ResDto<UpdateEmailPasswordDto>>();
+
+    from(
+      this.UserModel.findOne({
+        where: { id: uuid },
+      })
+    )
+      .pipe(
+        switchMap((user: User) => {
+          if (!user) {
+            return reply.status(404).json(NotFoundResponse());
+          }
+
+          // Update email dan password berdasarkan DTO
+          user.email = updateDto.email;
+          user.password = updateDto.password;
+
+          return from(user.save()).pipe(map(() => user));
+        })
+      )
+      .subscribe({
+        //Membaca ulang hasil update dto
+        next: async () => {
+          const updatedUser = await this.UserModel.findOne({
+            where: { id: uuid },
+          });
+      
+          if (!updatedUser) {
+            reply.status(404).json(ResNotFound([{ key: 'id', value: uuid }]));
+          } else {
+            reply.json(ResOK([ToCreateUserDto(updatedUser)]));
+          }
+        },
+        complete: () => {
+          result.complete();
+        },
+        error: (err) => {
+          ReplyError(err, this.logger, reply);
+          result.error(err);
+        },
+      });
+      
+  }
+
 }

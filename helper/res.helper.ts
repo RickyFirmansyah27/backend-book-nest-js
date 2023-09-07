@@ -71,6 +71,14 @@ export function DeleteResponse(): ResDto<any> {
   };
 }
 
+export function NotFoundResponse(): ResDto<any> {
+  return {
+    code: '200',
+    desc: 'Item not found',
+    timestamp: new Date()
+  };
+}
+
 export function ResAccepted(p:{key: string, value:string}[], reqId?: string): ResDto<any> {
   return {
     code: '202',
