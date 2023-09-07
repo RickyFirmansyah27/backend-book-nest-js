@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { ConfigModule } from '@nestjs/config';
 import { UserController } from './user/user.controller';
 import { User } from './user/user.entity';
 import { PaginateOption } from '../helper/pagination.helper';
@@ -9,22 +8,25 @@ import { Book } from './book/book.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    SequelizeModule.forRootAsync({
-      useFactory: () => ({
-        dialect: 'mysql', 
-        host: process.env.DB_HOST,
-        port: parseInt(process.env.DB_PORT, 10) || 3306,
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE,
-        autoLoadModels: true,
-        synchronize: true,
-      }),
+    SequelizeModule.forRoot({
+      dialect: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: '',
+      database: 'db_coding',
+      autoLoadModels: true,
+      synchronize: true,
     }),
-    SequelizeModule.forFeature([User, Book]),
+    SequelizeModule.forFeature([
+      User,
+      Book
+    ]), 
   ],
-  controllers: [UserController, BookController],
+  controllers: [
+    UserController,
+    BookController
+  ],
   providers: [PaginateOption],
 })
 export class AppModule {}
