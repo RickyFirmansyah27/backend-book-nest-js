@@ -7,11 +7,13 @@ import {
   Res,
   Body,
   Post,
+  Delete,
 } from '@nestjs/common'; // Pastikan Anda mengimpor Res dengan benar
 import {
   ResOK,
   ResNotFound,
   ReplyError,
+  DeleteResponse,
 } from '../../helper/res.helper';
 import { from } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -46,6 +48,25 @@ export class UserController {
         },
         error: (err) => ReplyError(err, this.logger, reply),
       });
+  }
+
+  @Delete(':id')
+  async deleteUserById(@Query('id') id: string, @Res() reply) {
+    try {
+      const book = await this.UserModel.findOne({
+        where: { id },
+      });
+
+      if (!book) {
+        return reply.status(404).json(ResNotFound([{ key: 'id', value: id }]));
+      }
+
+      await book.destroy();
+
+      reply.json(DeleteResponse());
+    } catch (err) {
+      ReplyError(err, this.logger, reply);
+    }
   }
 
   @Get()
