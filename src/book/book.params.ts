@@ -1,6 +1,6 @@
 
 import { QueryParamsDto } from '../../helper/query-params.helper';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 export class QueryParamsBook extends QueryParamsDto {
   mode: QueryMode;
@@ -28,14 +28,14 @@ export const ToSeqWhere = (q: QueryParamsBook) => {
     filterQuery['id'] = q['id'];
   }
 
-  if (q['year']) { 
+  if (q['year']) {
     filterQuery['thn_rilis'] = q['year'];
   }
 
   if (q['onYear']) {
-    const yearFilter = q['onYear'].split(','); 
+    const yearFilter = q['onYear'].split(',');
     if (yearFilter.length === 1) {
-      filterQuery['thn_rilis'] = yearFilter[0]; 
+      filterQuery['thn_rilis'] = yearFilter[0];
     } else if (yearFilter.length === 2) {
       filterQuery['thn_rilis'] = {
         [Op.between]: [yearFilter[0], yearFilter[1]],
@@ -43,13 +43,38 @@ export const ToSeqWhere = (q: QueryParamsBook) => {
     }
   }
 
-  if (q['judul']) { 
-    filterQuery['judul'] = { [Op.like]: `%${q['judul']}%` };
+  if (q['tittle']) {
+    const authors = q['tittle'].split(',').map(a => a.trim());
+    if (authors.length === 1) {
+      filterQuery['judul'] = {
+        [Op.like]: `%${authors[0]}%`
+      };
+    } else if (authors.length > 1) {
+      filterQuery['judul'] = {
+        [Op.or]: authors.map(a => ({
+          [Op.like]: `%${a}%`,
+        }))
+      };
+    }
   }
 
-  if (q['author']) { 
-    filterQuery['pengarang'] = { [Op.like]: `%${q['author']}%` };
+  //filter using sparator ,
+  if (q['author']) {
+    const authors = q['author'].split(',').map(a => a.trim());
+    if (authors.length === 1) {
+      filterQuery['pengarang'] = {
+        [Op.like]: `%${authors[0]}%`
+      };
+    } else if (authors.length > 1) {
+      filterQuery['pengarang'] = {
+        [Op.or]: authors.map(a => ({
+          [Op.like]: `%${a}%`,
+        }))
+      };
+    }
   }
+
+
 
   //To Do Encyption filter
   // if (q.filter) {
