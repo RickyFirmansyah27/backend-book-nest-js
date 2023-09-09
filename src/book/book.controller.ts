@@ -9,6 +9,7 @@ import {
   Delete,
   Param,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import {
   ResOK,
@@ -16,6 +17,7 @@ import {
   ReplyError,
   DeleteResponse,
   ResDto,
+  NotFoundResponse,
 } from '../../helper/res.helper';
 import { Subject, from, of } from 'rxjs';
 import { map, switchMap, tap, toArray } from 'rxjs/operators';
@@ -24,6 +26,7 @@ import { Book } from './book.entity';
 import { CreateBookDto, ToCreateBookDto } from './create-book.dto';
 import { PaginateOption } from '../../helper/pagination.helper';
 import { QueryParamsBook, ToSeqWhere, ToSeqAttributes } from './book.params';
+import { UpdateBookDto } from './update-book.dto';
 
 
 @Controller('books')
@@ -192,5 +195,58 @@ export class BookController {
         },
         error: (err) => ReplyError(err, this.logger, reply),
       });
+  }
+
+  @Put(':uuid')
+  update(
+    @Query('uuid') uuid: string,
+    @Body() updateDto: UpdateBookDto,
+    @Res() reply,
+  ) {
+    const result = new Subject<ResDto<UpdateBookDto>>();
+
+    from(
+      this.BookModel.findOne({
+        where: { id: uuid },
+      })
+    )
+      .pipe(
+        switchMap((book: Book) => {
+          if (!book) {
+            return reply.status(404).json(NotFoundResponse());
+          }
+
+          // Update book using dto body
+          book.judul = updateDto.title;
+          book.pengarang = updateDto.author;
+          book.thn_rilis = updateDto.year;
+          book.volume = updateDto.vol;
+
+
+          return from(book.save()).pipe(map(() => book));
+        })
+      )
+      .subscribe({
+        //Membaca ulang hasil update dto
+        next: async () => {
+          const updatedbook = await this.BookModel.findOne({
+            where: { id: uuid },
+          });
+      
+          if (!updatedbook) {
+            reply.status(404).json(ResNotFound([{ key: 'id', value: uuid }]));
+          } else {
+            reply.json(ResOK([ToCreateBookDto(updatedbook)]));
+          }
+        },
+        complete: () => {
+          result.complete();
+        },
+        error: (err) => {
+          ReplyError(err, this.logger, reply);
+          result.error(err);
+        },
+      });
+      
   }
 }

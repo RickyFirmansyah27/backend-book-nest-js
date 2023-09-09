@@ -9,6 +9,8 @@ import {
   Post,
   Delete,
   Put,
+  BadRequestException,
+  Patch,
 } from '@nestjs/common'; // Pastikan Anda mengimpor Res dengan benar
 import {
   ResOK,
@@ -19,11 +21,14 @@ import {
   ResDto,
 } from '../../helper/res.helper';
 import { Subject, from } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, toArray } from 'rxjs/operators';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './user.entity';
-import { ToCreateUserDto } from './create-user.dto';
+import { CreateUserDto, ToCreateUserDto } from './create-user.dto';
 import { UpdateEmailPasswordDto } from './update-auth-user.dto';
+import { QueryParamsUser, ToSeqWhere, ToSeqAttributes } from './user.params';
+import { PaginateOption } from '../../helper/pagination.helper';
+import { UpdateUserDto } from './update-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -31,6 +36,7 @@ export class UserController {
   constructor(
     @InjectModel(User)
     private UserModel: typeof User,
+    private readonly paginate: PaginateOption
   ) { }
 
   @Get('uuid')
@@ -74,16 +80,65 @@ export class UserController {
   }
 
   @Get()
-  findAll(@Res() reply) {
-    from(
-      this.UserModel.findAll(),
-    )
+  findAll(@Query() q: QueryParamsUser, @Res() reply) {
+    const pageOptions = {
+      page: (q.page < 0 ? 0 : q.page) || 0,
+      size:
+        (q.size < 0 || q.size > this.paginate.MaxSize
+          ? this.paginate.MaxSize
+          : q.size) || this.paginate.MaxSize,
+    };
+  
+    const pagination = {
+      totalCount: 0,
+      totalPage: 0,
+      page: pageOptions.page,
+      size: pageOptions.size,
+    };
+  
+    const where = ToSeqWhere(q);
+    const attributes = ToSeqAttributes(q);
+    const query = {
+      where,
+      attributes,
+      limit: pageOptions.size,
+      offset: pageOptions.page * pageOptions.size,
+    };
+  
+    if (q.download) {
+      delete query['limit'];
+      delete query['offset'];
+    }
+  
+    const result = new Subject<ResDto<CreateUserDto>>();
+    from(this.UserModel.count({ where }))
       .pipe(
-        map((m) => m),
+        switchMap((v: number) => {
+          pagination.totalCount = v;
+          pagination.totalPage = Math.ceil(
+            pagination.totalCount / pageOptions.size,
+          );
+          if (pageOptions.page > pagination.totalPage) {
+            throw new BadRequestException(['Page is invalid']);
+          }
+          return from(this.UserModel.findAll(query));
+        }),
+        map((user: User[]) => {
+          return user.map((user: User) => ToCreateUserDto(user));
+        }),
+        toArray(),
       )
       .subscribe({
-        next: (users: User[]) => {
-          reply.json(ResOK(users.map((user) => ToCreateUserDto(user))));
+        next: (data) => {
+          if (!q.download) {
+            reply.json(ResOK(data, pagination));
+          } else {
+            //To Do Download to Excel
+            reply.json(ResOK(data, pagination));
+          }
+        },
+        complete: () => {
+          result.complete();
         },
         error: (err) => ReplyError(err, this.logger, reply),
       });
@@ -106,7 +161,7 @@ export class UserController {
   }
 
   @Put(':uuid')
-  update(
+  updateAuth(
     @Query('uuid') uuid: string,
     @Body() updateDto: UpdateEmailPasswordDto,
     @Res() reply,
@@ -127,6 +182,58 @@ export class UserController {
           // Update email dan password berdasarkan DTO
           user.email = updateDto.email;
           user.password = updateDto.password;
+
+          return from(user.save()).pipe(map(() => user));
+        })
+      )
+      .subscribe({
+        //Membaca ulang hasil update dto
+        next: async () => {
+          const updatedUser = await this.UserModel.findOne({
+            where: { id: uuid },
+          });
+      
+          if (!updatedUser) {
+            reply.status(404).json(ResNotFound([{ key: 'id', value: uuid }]));
+          } else {
+            reply.json(ResOK([ToCreateUserDto(updatedUser)]));
+          }
+        },
+        complete: () => {
+          result.complete();
+        },
+        error: (err) => {
+          ReplyError(err, this.logger, reply);
+          result.error(err);
+        },
+      });
+      
+  }
+
+  @Patch(':uuid')
+  updateUser(
+    @Query('uuid') uuid: string,
+    @Body() updateDto: UpdateUserDto,
+    @Res() reply,
+  ) {
+    const result = new Subject<ResDto<UpdateUserDto>>();
+
+    from(
+      this.UserModel.findOne({
+        where: { id: uuid },
+      })
+    )
+      .pipe(
+        switchMap((user: User) => {
+          if (!user) {
+            return reply.status(404).json(NotFoundResponse());
+          }
+
+          // Update user using dto body
+          user.name = updateDto.name;
+          user.gender = updateDto.gender;
+          user.age = updateDto.age;
+
 
           return from(user.save()).pipe(map(() => user));
         })
