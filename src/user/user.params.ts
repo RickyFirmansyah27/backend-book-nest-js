@@ -33,6 +33,7 @@ export const ToSeqWhere = (q: QueryParamsUser) => {
     filterQuery['age'] = q['age'];
   }
 
+   //filter using sparator ,
   if (q['onYear']) {
     const ageFilter = q['onYear'].split(','); 
     if (ageFilter.length === 1) {
@@ -44,12 +45,35 @@ export const ToSeqWhere = (q: QueryParamsUser) => {
     }
   }
 
-  if (q['name']) { 
-    filterQuery['name'] = { [Op.like]: `%${q['name']}%` };
+   //filter using sparator ,
+   if (q['name']) {
+    const name = q['name'].split(',').map(a => a.trim());
+    if (name.length === 1) {
+      filterQuery['name'] = {
+        [Op.like]: `%${name[0]}%`
+      };
+    } else if (name.length > 1) {
+      filterQuery['name'] = {
+        [Op.or]: name.map(a => ({
+          [Op.like]: `%${a}%`,
+        }))
+      };
+    }
   }
 
-  if (q['email']) { 
-    filterQuery['email'] = { [Op.like]: `%${q['email']}%` };
+  if (q['email']) {
+    const email = q['email'].split(',').map(a => a.trim());
+    if (email.length === 1) {
+      filterQuery['email'] = {
+        [Op.like]: `%${email[0]}%`
+      };
+    } else if (email.length > 1) {
+      filterQuery['email'] = {
+        [Op.or]: email.map(a => ({
+          [Op.like]: `%${a}%`,
+        }))
+      };
+    }
   }
 
   if (q['gender']) { 
