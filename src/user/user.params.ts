@@ -1,6 +1,8 @@
 
+import { FilterNumber, FilterString, FilterStringSparator } from 'helper/query-filter.helper';
 import { QueryParamsDto } from '../../helper/query-params.helper';
 import { Op } from 'sequelize';
+import atob from 'atob'
 
 export class QueryParamsUser extends QueryParamsDto {
   mode: QueryMode;
@@ -80,7 +82,44 @@ export const ToSeqWhere = (q: QueryParamsUser) => {
     filterQuery['gender'] = { [Op.like]: `%${q['gender']}%` };
   }
 
-  //To Do Encyption filter
+  // To Do Encyption filter
+  if (q.filter) {
+    //using atob if compatible
+    // if (q.filter == null) return null;
+    // const f = atob(q.filter);
+    // if (f == '') return {};
+
+    if (q.filter == null) return null;
+    const f = Buffer.from(q.filter, 'base64').toString('utf-8');
+    console.log(f);
+    if (f === '') return {};
+
+
+    const fob: FilterGroup = JSON.parse(f);
+
+    if (fob.name)
+      filterQuery = {
+        ...filterQuery,
+        ...FilterStringSparator('name', fob.name),
+      };
+      if (fob.email)
+      filterQuery = {
+        ...filterQuery,
+        ...FilterString('email', fob.email),
+      };
+      if (fob.age)
+      filterQuery = {
+        ...filterQuery,
+        ...FilterNumber('age', fob.age),
+      };
+      if (fob.gender)
+      filterQuery = {
+        ...filterQuery,
+        ...FilterString('gender', fob.gender),
+      };
+  }
+
+  //Filter not use encryption
   // if (q.filter) {
   //   const filter: FilterGroup = JSON.parse(q.filter);
   //   Object.keys(filter).forEach((k) => {
