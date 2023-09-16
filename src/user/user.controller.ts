@@ -26,7 +26,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { User } from './user.entity';
 import { CreateUserDto, ToCreateUserDto } from './create-user.dto';
 import { UpdateEmailPasswordDto } from './update-auth-user.dto';
-import { QueryParamsUser, ToSeqWhere, ToSeqAttributes } from './user.params';
+import { QueryParamsUser, ToSeqWhere, ToSeqAttributes, ToSortUser, ToSortData } from './user.params';
 import { PaginateOption } from '../../helper/pagination.helper';
 import { UpdateUserDto } from './update-user.dto';
 
@@ -98,8 +98,13 @@ export class UserController {
   
     const where = ToSeqWhere(q);
     const attributes = ToSeqAttributes(q);
+    //Sort without ecnryption
+    const order = ToSortData(q.sort);
+    //Sort with encryption
+    // const order = ToSortUser(q.sort);
     const query = {
       where,
+      order,
       attributes,
       limit: pageOptions.size,
       offset: pageOptions.page * pageOptions.size,

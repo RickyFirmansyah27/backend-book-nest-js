@@ -1,5 +1,5 @@
 
-import { FilterNumber, FilterString, FilterStringSparator } from 'helper/query-filter.helper';
+import { FilterNumber, FilterString, FilterStringSparator, SortField } from 'helper/query-filter.helper';
 import { QueryParamsDto } from '../../helper/query-params.helper';
 import { Op } from 'sequelize';
 import atob from 'atob'
@@ -21,6 +21,15 @@ export interface FilterGroup {
   email: string;
   password: string;
   age: number;
+  gender: string;
+}
+
+export interface SortGroup {
+  id: string,
+  name: string;
+  email: string;
+  password: string;
+  age: string;
   gender: string;
 }
 
@@ -82,7 +91,7 @@ export const ToSeqWhere = (q: QueryParamsUser) => {
     filterQuery['gender'] = { [Op.like]: `%${q['gender']}%` };
   }
 
-  // To Do Encyption filter
+  //Encyption filter
   if (q.filter) {
     //using atob if compatible
     // if (q.filter == null) return null;
@@ -179,6 +188,56 @@ export const ToSeqAttributes = (q: QueryParamsDto) => {
   }
 
   return undefined;
+};
+
+export const ToSortUser = (sort: string) => {
+  // If compatible atob
+  // if (sort == null) return null;
+  // const f = atob(sort);
+  // if (f == '') return null;
+  // const fob: SortGroup = JSON.parse(f);
+  // const q = [];
+
+  if (sort == null) return null;
+
+  const f = Buffer.from(sort, 'base64').toString('utf-8');
+  if (f == '') return null;
+  const fob: SortGroup = JSON.parse(f);
+  const q = [];
+  console.log(q);
+
+  if (fob.age) q.push(SortField('age', fob.age));
+
+  return q;
+};
+
+// Fungsi untuk mengurutkan data tanpa encryption
+export const ToSortData = (sort: string) => {
+  if (sort == null) return null;
+
+  const [fieldName, sortOrder] = sort.split(',');
+
+  if (!fieldName || !sortOrder) return null;
+
+  const q = [];
+
+  if (fieldName === 'age') {
+    q.push(SortField(fieldName, sortOrder));
+  }
+
+  if (fieldName === 'name') {
+    q.push(SortField(fieldName, sortOrder));
+  }
+
+  if (fieldName === 'gender') {
+    q.push(SortField(fieldName, sortOrder));
+  }
+
+  if (fieldName === 'email') {
+    q.push(SortField(fieldName, sortOrder));
+  }
+
+  return q;
 };
 
 
