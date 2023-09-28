@@ -27,6 +27,8 @@ import { CreateBookDto, ToCreateBookDto } from './create-book.dto';
 import { PaginateOption } from '../../helper/pagination.helper';
 import { QueryParamsBook, ToSeqWhere, ToSeqAttributes } from './book.params';
 import { UpdateBookDto } from './update-book.dto';
+import { ToExcelFile } from 'helper/convertExcelFile.helper';
+import { BookDto } from './book.dto';
 
 
 @Controller('books')
@@ -132,8 +134,28 @@ export class BookController {
           if (!q.download) {
             reply.json(ResOK(data, pagination));
           } else {
-            //To Do Download to Excel
-            reply.json(ResOK(data, pagination));
+            // Generate file when download is true
+            const filename = 'user-list';
+            const dataFile = data.map((d: CreateBookDto[] ) => ({
+              id: d['id'],
+              judul: d['judul'],
+              author: d['pengarang'],
+              year: d['thn_rilis'],
+              vol: d['vol']
+             }));
+            from(
+              ToExcelFile(dataFile,filename),
+            ).subscribe({
+              next: (file) => {
+                reply.setHeader(
+                  'Content-Disposition',
+                  `attachment; filename="${filename}.xlsx"`
+                );
+                reply.setHeader('Content-Type', 'text/xlsx');
+                reply.sendFile(file);
+              },
+              error: (err) => ReplyError(err, this.logger, reply),
+            });
           }
         },
         complete: () => {

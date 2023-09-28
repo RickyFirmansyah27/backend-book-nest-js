@@ -148,10 +148,7 @@ export class UserController {
             password: d['password'],
            }));
           from(
-            ToExcelFile(
-              dataFile,
-              filename,
-            )
+            ToExcelFile(dataFile,filename),
           ).subscribe({
             next: (file) => {
               reply.setHeader(
