@@ -27,8 +27,7 @@ import { CreateBookDto, ToCreateBookDto } from './create-book.dto';
 import { PaginateOption } from '../../helper/pagination.helper';
 import { QueryParamsBook, ToSeqWhere, ToSeqAttributes } from './book.params';
 import { UpdateBookDto } from './update-book.dto';
-import { ToExcelFile } from 'helper/convertExcelFile.helper';
-import { BookDto } from './book.dto';
+import { ToExcelFile } from '../../helper/convertExcelFile.helper';
 
 
 @Controller('books')

@@ -1,5 +1,5 @@
 
-import { FilterNumber, FilterString, FilterStringSparator, SortField } from 'helper/query-filter.helper';
+import { FilterNumber, FilterString, FilterStringSparator, SortField } from '../../helper/query-filter.helper';
 import { QueryParamsDto } from '../../helper/query-params.helper';
 import { Op } from 'sequelize';
 import atob from 'atob'

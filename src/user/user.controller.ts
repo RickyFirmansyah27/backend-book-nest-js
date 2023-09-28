@@ -30,8 +30,8 @@ import { UpdateEmailPasswordDto } from './update-auth-user.dto';
 import { QueryParamsUser, ToSeqWhere, ToSeqAttributes, ToSortUser, ToSortData } from './user.params';
 import { PaginateOption } from '../../helper/pagination.helper';
 import { UpdateUserDto } from './update-user.dto';
-import { ToDto, UserDTO } from './user.dto';
-import { ToExcelFile } from 'helper/convertExcelFile.helper';
+import { UserDTO } from './user.dto';
+import { ToExcelFile } from '../../helper/convertExcelFile.helper';
 
 @Controller('users')
 export class UserController {
