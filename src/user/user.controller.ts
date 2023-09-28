@@ -11,6 +11,7 @@ import {
   Put,
   BadRequestException,
   Patch,
+  InternalServerErrorException,
 } from '@nestjs/common'; // Pastikan Anda mengimpor Res dengan benar
 import {
   ResOK,
@@ -20,8 +21,8 @@ import {
   NotFoundResponse,
   ResDto,
 } from '../../helper/res.helper';
-import { Subject, from } from 'rxjs';
-import { map, switchMap, toArray } from 'rxjs/operators';
+import { Subject, from, throwError } from 'rxjs';
+import { catchError, map, switchMap, toArray } from 'rxjs/operators';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './user.entity';
 import { CreateUserDto, ToCreateUserDto } from './create-user.dto';
@@ -29,6 +30,8 @@ import { UpdateEmailPasswordDto } from './update-auth-user.dto';
 import { QueryParamsUser, ToSeqWhere, ToSeqAttributes, ToSortUser, ToSortData } from './user.params';
 import { PaginateOption } from '../../helper/pagination.helper';
 import { UpdateUserDto } from './update-user.dto';
+import { ToDto, UserDTO } from './user.dto';
+import { ToExcelFile } from 'helper/convertExcelFile.helper';
 
 @Controller('users')
 export class UserController {
@@ -83,10 +86,9 @@ export class UserController {
   findAll(@Query() q: QueryParamsUser, @Res() reply) {
     const pageOptions = {
       page: (q.page < 0 ? 0 : q.page) || 0,
-      size:
-        (q.size < 0 || q.size > this.paginate.MaxSize
-          ? this.paginate.MaxSize
-          : q.size) || this.paginate.MaxSize,
+      size: (q.size < 0 || q.size > this.paginate.MaxSize
+        ? this.paginate.MaxSize
+        : q.size) || this.paginate.MaxSize,
     };
   
     const pagination = {
@@ -115,39 +117,61 @@ export class UserController {
       delete query['offset'];
     }
   
-    const result = new Subject<ResDto<CreateUserDto>>();
-    from(this.UserModel.count({ where }))
-      .pipe(
-        switchMap((v: number) => {
-          pagination.totalCount = v;
-          pagination.totalPage = Math.ceil(
-            pagination.totalCount / pageOptions.size,
-          );
-          if (pageOptions.page > pagination.totalPage) {
-            throw new BadRequestException(['Page is invalid']);
-          }
-          return from(this.UserModel.findAll(query));
-        }),
-        map((user: User[]) => {
-          return user.map((user: User) => ToCreateUserDto(user));
-        }),
-        toArray(),
-      )
-      .subscribe({
-        next: (data) => {
-          if (!q.download) {
-            reply.json(ResOK(data, pagination));
-          } else {
-            //To Do Download to Excel
-            reply.json(ResOK(data, pagination));
-          }
-        },
-        complete: () => {
-          result.complete();
-        },
-        error: (err) => ReplyError(err, this.logger, reply),
-      });
+    const result = new Subject<ResDto<UserDTO>>();
+    from(this.UserModel.count({ where })).pipe(
+      switchMap((v: number) => {
+        pagination.totalCount = v;
+        pagination.totalPage = Math.ceil(pagination.totalCount / pageOptions.size);
+        if (pageOptions.page > pagination.totalPage) {
+          throw new BadRequestException(['Page is invalid']);
+        }
+        return from(this.UserModel.findAll(query));
+      }),
+      map((users: User[]) => users.map((user: User) => ToCreateUserDto(user))),
+      toArray(),
+      catchError((err) => {
+        return throwError(new InternalServerErrorException('An error occurred.'));
+      })
+    ).subscribe({
+      next: (data) => {
+        if (!q.download) {
+          reply.json(ResOK(data, pagination));
+        } else {
+          // Generate file when download is true
+          const filename = 'user-list';
+          const dataFile: CreateUserDto[] = data.map((d: CreateUserDto[]) => ({
+            uuid: d['uuid'],
+            name: d['name'],
+            email: d['email'],
+            age: d['age'],
+            gender: d['gender'],
+            password: d['password'],
+           }));
+          from(
+            ToExcelFile(
+              dataFile,
+              filename,
+            )
+          ).subscribe({
+            next: (file) => {
+              reply.setHeader(
+                'Content-Disposition',
+                `attachment; filename="${filename}.xlsx"`
+              );
+              reply.setHeader('Content-Type', 'text/xlsx');
+              reply.sendFile(file);
+            },
+            error: (err) => ReplyError(err, this.logger, reply),
+          });
+        }
+      },
+      complete: () => {
+        result.complete();
+      },
+      error: (err) => ReplyError(err, this.logger, reply),
+    });
   }
+  
 
   @Post()
   createUser(@Body() createUserDto: User, @Res() reply) {
