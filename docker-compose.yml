@@ -1,0 +1,19 @@
+version: '3'
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: adminpassword
+    depends_on:
+      - mysql
+
+  k6:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./test/k6-config.js:/config.js
+    command: run /config.js
