@@ -12,7 +12,7 @@ import { Book } from './book/book.entity';
     SequelizeModule.forRoot({
       dialect: 'mysql',
       host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT, 10) || 3310,
+      port: parseInt(process.env.DB_PORT, 10) || 3320,
       username: process.env.DB_USERNAME || 'ricky',
       password: process.env.DB_PASSWORD||'root', 
       database: process.env.DB_DATABASE || 'simple_nest',
