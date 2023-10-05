@@ -6,8 +6,8 @@
 .env
 
 #docker
-.docker-compose.yml
-.Dockerfile
+docker-compose.yml
+Dockerfile
 
 # Logs
 logs
