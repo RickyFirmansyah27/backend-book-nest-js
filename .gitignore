@@ -5,6 +5,10 @@
 #env
 .env
 
+#docker
+.docker-compose.yml
+.Dockerfile
+
 # Logs
 logs
 *.log

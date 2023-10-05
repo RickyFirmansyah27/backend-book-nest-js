@@ -8,7 +8,7 @@ export let options = {
 
 export default function () {
   // Pengujian /users (GET) tanpa query
-  let res = http.get('http://localhost:3000/users'); // Ganti URL sesuai dengan endpoint Anda
+  let res = http.get('http://host.docker.internal:8000/users'); // Ganti URL sesuai dengan endpoint Anda
   check(res, {
     'status is 200': (r) => r.status === 200,
     // Tambahkan pengujian lain sesuai kebutuhan
@@ -16,7 +16,7 @@ export default function () {
   sleep(1);
 
   // Pengujian /books (GET) tanpa query
-  res = http.get('http://localhost:3000/books'); // Ganti URL sesuai dengan endpoint Anda
+  res = http.get('http://host.docker.internal:8000/books'); // Ganti URL sesuai dengan endpoint Anda
   check(res, {
     'status is 200': (r) => r.status === 200,
     // Tambahkan pengujian lain sesuai kebutuhan
@@ -33,7 +33,7 @@ export default function () {
   const queryStringFormatted = Object.keys(query)
     .map((key) => `${key}=${query[key]}`)
     .join('&');
-  res = http.get(`http://localhost:3000/users?${queryStringFormatted}`);
+  res = http.get(`http://host.docker.internal:8000/users?${queryStringFormatted}`);
   check(res, {
     'status is 200': (r) => r.status === 200,
     // Tambahkan pengujian lain sesuai kebutuhan
@@ -49,7 +49,7 @@ export default function () {
   const bookQueryStringFormatted = Object.keys(bookQuery)
     .map((key) => `${key}=${bookQuery[key]}`)
     .join('&');
-  res = http.get(`http://localhost:3000/books?${bookQueryStringFormatted}`);
+  res = http.get(`http://host.docker.internal:8000/books?${bookQueryStringFormatted}`);
   check(res, {
     'status is 200': (r) => r.status === 200,
     // Tambahkan pengujian lain sesuai kebutuhan

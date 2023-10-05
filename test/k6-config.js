@@ -10,6 +10,6 @@ export const options = {
 };
 
 export default function () {
-  const res = http.get('http://localhost:3000/users'); 
+  const res = http.get('http://host.docker.internal:8000/books');
   check(res, { 'status was 200': (r) => r.status == 200 });
 }
