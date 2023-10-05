@@ -83,7 +83,7 @@ describe('AppController (e2e)', () => {
   it('/books (GET) with query params', async () => {
     const query = {
       onYear: '2019,2023',
-      title: 'Myth of,Ragnarok',
+      tittle: 'Myth of,Ragnarok',
       author: 'Ricky,Aeth',
     };
 

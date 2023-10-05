@@ -42,8 +42,8 @@ export default function () {
 
   // Pengujian /books (GET) dengan query params
   const bookQuery = {
-    onYear: '2019,2023',
-    title: 'Myth of,Ragnarok',
+    onYear: '2022,2023',
+    tittle: 'Inferno,Edge',
     author: 'Ricky,Aeth',
   };
   const bookQueryStringFormatted = Object.keys(bookQuery)
