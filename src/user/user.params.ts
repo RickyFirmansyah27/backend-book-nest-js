@@ -170,9 +170,7 @@ export const ToSeqWhere = (q: QueryParamsUser) => {
   return filterQuery;
 };
 
-
-
-
+//compatible atob
 export const ToSeqAttributes = (q: QueryParamsDto) => {
   if (q.select) {
     const f = atob(q.select);

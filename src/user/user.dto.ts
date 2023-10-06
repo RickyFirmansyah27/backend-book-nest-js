@@ -1,4 +1,4 @@
-import { User } from './user.entity';
+// import { User } from './user.entity';
 
 export interface UserDTO {
     id: string,
@@ -9,7 +9,7 @@ export interface UserDTO {
     password: string;
 }
 
-export const ToDto = (e: User): UserDTO => ({
+export const ToDto = (e: UserDTO): UserDTO => ({
   id: e.id,
   name: e.name,
   email: e.email,

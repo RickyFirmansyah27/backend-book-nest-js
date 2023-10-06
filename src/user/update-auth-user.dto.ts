@@ -1,7 +1,8 @@
 // update-email-password.dto.ts
 
 import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
-import { User } from './user.entity';
+// import { User } from './user.entity';
+import { UserDTO } from './user.dto';
 
 export class UpdateEmailPasswordDto {
     @IsOptional()
@@ -14,7 +15,7 @@ export class UpdateEmailPasswordDto {
     password: string;
 }
 
-export const ToUpdateAuthUserDto = (e: User): UpdateEmailPasswordDto => ({
+export const ToUpdateAuthUserDto = (e: UserDTO): UpdateEmailPasswordDto => ({
     email: e?.email,
     password: e?.password,
 });

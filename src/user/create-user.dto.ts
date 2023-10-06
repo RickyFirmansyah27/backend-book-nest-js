@@ -1,4 +1,5 @@
-import { User } from './user.entity';
+import { UserDTO } from './user.dto';
+// import { User } from './user.entity';
 
 export interface CreateUserDto {
     uuid: string,
@@ -9,7 +10,7 @@ export interface CreateUserDto {
     password: string;
   }
   
-  export const ToCreateUserDto = (e: User): CreateUserDto => ({
+  export const ToCreateUserDto = (e: UserDTO): CreateUserDto => ({
     uuid: e?.id,
     name: e?.name,
     email: e?.email,
