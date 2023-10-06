@@ -172,21 +172,18 @@ export const ToSeqWhere = (q: QueryParamsUser) => {
 
 //compatible atob
 export const ToSeqAttributes = (q: QueryParamsDto) => {
-  if (q.select) {
-    const f = atob(q.select);
-    const selectObject = JSON.parse(f);
-    if (f == '') return [];
+   //using atob if compatible
+  // const f = atob(q.select);
+  
+  if (q.select == null) return null;
+  const f = Buffer.from(q.select, 'base64').toString('utf-8');
+  const selectObject = JSON.parse(f);
+  if (!selectObject) return [];
 
-    const attributes =
-      selectObject &&
-      Object.keys(selectObject).map((k) => {
-        if (selectObject[k]) return k;
-      });
-    return attributes;
-  }
-
-  return undefined;
+  const attributes = Object.keys(selectObject).filter((k) => selectObject[k]);
+  return attributes;
 };
+
 
 export const ToSortUser = (sort: string) => {
   // If compatible atob

@@ -101,9 +101,9 @@ export class UserController {
     const where = ToSeqWhere(q);
     const attributes = ToSeqAttributes(q);
     //Sort without ecnryption
-    const order = ToSortData(q.sort);
+    // const order = ToSortData(q.sort);
     //Sort with encryption
-    // const order = ToSortUser(q.sort);
+    const order = ToSortUser(q.sort);
     const query = {
       where,
       order,
