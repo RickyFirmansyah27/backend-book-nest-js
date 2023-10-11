@@ -112,22 +112,20 @@ export class BookController {
   
     const result = new Subject<ResDto<CreateBookDto>>();
     from(this.BookModel.count({ where }))
-      .pipe(
-        switchMap((v: number) => {
-          pagination.totalCount = v;
-          pagination.totalPage = Math.ceil(
-            pagination.totalCount / pageOptions.size,
-          );
-          if (pageOptions.page > pagination.totalPage) {
-            throw new BadRequestException(['Page is invalid']);
-          }
-          return from(this.BookModel.findAll(query));
-        }),
-        map((books: Book[]) => {
-          return books.map((book: Book) => ToCreateBookDto(book));
-        }),
-        toArray(),
-      )
+    .pipe(
+      switchMap((v: number) => {
+        pagination.totalCount = v;
+        pagination.totalPage = Math.ceil(pagination.totalCount / pageOptions.size);
+        if (pageOptions.page > pagination.totalPage) {
+          throw new BadRequestException(['Page is invalid']);
+        }
+        return from(this.BookModel.findAll(query));
+      }),
+      map((books: Book[]) => {
+        return books.map((book: Book) => ToCreateBookDto(book));
+      }),
+      toArray(),
+    )  
       .subscribe({
         next: (data) => {
           if (!q.download) {

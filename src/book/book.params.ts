@@ -1,6 +1,6 @@
 
 import { QueryParamsDto } from '../../helper/query-params.helper';
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 
 export class QueryParamsBook extends QueryParamsDto {
   mode: QueryMode;

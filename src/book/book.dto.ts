@@ -15,4 +15,12 @@ export interface BookDto {
     year: e?.thn_rilis,
     vol: e?.volume,
   });
+
+  export const FromDto = (e: BookDto): BookDto => ({
+    id: e?.id,
+    judul: e?.judul,
+    author: e?.author,
+    year: e?.year,
+    vol: e?.vol,
+  });
   
