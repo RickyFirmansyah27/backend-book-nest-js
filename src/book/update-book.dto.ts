@@ -19,9 +19,16 @@ export class UpdateBookDto {
     vol: string;
 }
 
-export const toUpdateAuthUserDto = (e: Book): UpdateBookDto => ({
+export const ToUpdateBookDto = (e: Book): UpdateBookDto => ({
     title: e?.judul,
     author: e?.pengarang,
     year: e?.thn_rilis,
     vol: e?.volume,
+});
+
+export const FromUpdateBookDto = (e: UpdateBookDto): UpdateBookDto => ({
+    title: e?.title,
+    author: e?.author,
+    year: e?.year,
+    vol: e?.vol,
 });
