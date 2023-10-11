@@ -1,6 +1,6 @@
 import { FindOptions } from 'sequelize';
 
-export const QueryFindMembers = (where, order, pagination): FindOptions => ({
+export const QueryFindUser = (where, order, pagination): FindOptions => ({
   where,
   order,
   limit: pagination != null ? pagination.size : null,

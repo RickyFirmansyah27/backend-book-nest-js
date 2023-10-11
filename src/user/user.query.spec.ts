@@ -1,6 +1,6 @@
-import { QueryFindMembers } from './user.query'; // Gantilah 'your-module' dengan path yang sesuai
+import { QueryFindUser } from './user.query'; // Gantilah 'your-module' dengan path yang sesuai
 
-describe('QueryFindMembers', () => {
+describe('QueryFindUser', () => {
   it('should create a valid FindOptions object', () => {
     const where = { /* your where condition */ };
     const order = [ /* your order condition */ ];
@@ -9,7 +9,7 @@ describe('QueryFindMembers', () => {
       page: 1,
     };
 
-    const findOptions = QueryFindMembers(where, order, pagination);
+    const findOptions = QueryFindUser(where, order, pagination);
 
     // Memeriksa apakah hasilnya sesuai dengan yang diharapkan
     expect(findOptions).toEqual({
@@ -26,7 +26,7 @@ describe('QueryFindMembers', () => {
     const order = [ /* your order condition */ ];
     const pagination = null;
 
-    const findOptions = QueryFindMembers(where, order, pagination);
+    const findOptions = QueryFindUser(where, order, pagination);
 
     // Memeriksa apakah hasilnya sesuai dengan yang diharapkan (pagination.size dan pagination.page harus null)
     expect(findOptions).toEqual({
